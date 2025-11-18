@@ -57,6 +57,11 @@ export const getCustomerProfile = async () => {
   return response.data;
 };
 
+export const updateCustomerProfile = async (data) => {
+  const response = await api.put('/customers/profile', data);
+  return response.data;
+};
+
 // Vendor Authentication
 export const vendorSignup = async (data) => {
   const response = await api.post('/vendor/signup', data);
@@ -70,6 +75,16 @@ export const vendorLogin = async (data) => {
 
 export const getVendorProfile = async () => {
   const response = await api.get('/vendor/profile');
+  return response.data;
+};
+
+export const updateVendorProfile = async (data) => {
+  const response = await api.put('/vendor/profile', data);
+  return response.data;
+};
+
+export const getDashboardStats = async () => {
+  const response = await api.get('/vendor/dashboard/stats');
   return response.data;
 };
 
@@ -137,6 +152,22 @@ export const deleteMenuItem = async (itemId) => {
   return response.data;
 };
 
+// Order Management for Vendors
+export const getVendorOrders = async () => {
+  const response = await api.get('/vendor/orders');
+  return response.data;
+};
+
+export const getVendorOrderById = async (orderId) => {
+  const response = await api.get(`/vendor/orders/${orderId}`);
+  return response.data;
+};
+
+export const updateVendorOrderStatus = async (orderId, newStatus) => {
+  const response = await api.patch(`/vendor/orders/${orderId}/status`, { newStatus });
+  return response.data;
+};
+
 export const updateDeliveryPrice = async (data) => {
   const response = await api.put('/vendor/update-delivery-price', data);
   return response.data;
@@ -149,30 +180,30 @@ export const getCart = async () => {
   return response.data;
 };
 
-export const addToCart = async (data) => {
-  const response = await api.post('/cart', data);
+export const addItemToCart = async (itemId, quantity = 1) => {
+  const response = await api.post('/cart/add', { itemId, quantity });
   return response.data;
 };
 
-export const updateCartItem = async (itemId, data) => {
-  const response = await api.put(`/cart/${itemId}`, data);
+export const updateCartItemQuantity = async (itemId, quantity) => {
+  const response = await api.post('/cart/update', { itemId, quantity });
   return response.data;
 };
 
-export const removeFromCart = async (itemId) => {
-  const response = await api.delete(`/cart/${itemId}`);
+export const removeItemFromCart = async (itemId) => {
+  const response = await api.post('/cart/remove', { itemId });
   return response.data;
 };
 
 export const clearCart = async () => {
-  const response = await api.delete('/cart');
+  const response = await api.post('/cart/clear');
   return response.data;
 };
 
 // ==================== ORDER APIs ====================
 
-export const createOrder = async (data) => {
-  const response = await api.post('/order', data);
+export const placeOrder = async () => {
+  const response = await api.post('/order/place');
   return response.data;
 };
 

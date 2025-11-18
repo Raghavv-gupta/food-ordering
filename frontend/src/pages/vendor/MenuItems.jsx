@@ -6,21 +6,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, ImagePlus, Loader2 } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { 
@@ -39,16 +24,19 @@ const MenuItems = () => {
     name: '',
     description: '',
     price: '',
-    category: 'Pizza',
+    category: '',
     image: '',
     available: true,
   });
   const [saveLoading, setSaveLoading] = useState(false);
 
-  const categories = ['Pizza', 'Burgers', 'Sides', 'Drinks', 'Desserts', 'Indian', 'Chinese', 'Italian'];
-
   // Fetch menu items on component mount
   useEffect(() => {
+    console.log('🚀 MenuItems component mounted');
+    const token = localStorage.getItem('token');
+    const userRole = localStorage.getItem('userRole');
+    console.log('🔑 Token exists:', !!token);
+    console.log('👤 User role:', userRole);
     fetchMenuItems();
   }, []);
 
@@ -69,16 +57,18 @@ const MenuItems = () => {
   };
 
   const handleAddNew = () => {
+    console.log('🔵 Add New button clicked');
     setEditingItem(null);
     setFormData({
       name: '',
       description: '',
       price: '',
-      category: 'Pizza',
+      category: '',
       image: '',
       available: true,
     });
     setDialogOpen(true);
+    console.log('🔵 Dialog should be open now');
   };
 
   const handleEdit = (item) => {
@@ -95,17 +85,29 @@ const MenuItems = () => {
   };
 
   const handleSave = async () => {
+    console.log('💾 Save button clicked');
+    alert('Save button was clicked! Check console for details.');
+    console.log('💾 Form data:', formData);
+    console.log('💾 Dialog open state:', dialogOpen);
+    
     // Validation
     if (!formData.name || !formData.description || !formData.price || !formData.category) {
+      console.log('❌ Validation failed - missing fields');
+      console.log('❌ Name:', formData.name);
+      console.log('❌ Description:', formData.description);
+      console.log('❌ Price:', formData.price);
+      console.log('❌ Category:', formData.category);
       toast.error('Please fill in all required fields');
       return;
     }
 
     if (isNaN(parseFloat(formData.price)) || parseFloat(formData.price) <= 0) {
+      console.log('❌ Validation failed - invalid price');
       toast.error('Please enter a valid price');
       return;
     }
 
+    console.log('✅ Validation passed');
     setSaveLoading(true);
     try {
       const itemData = {
@@ -117,25 +119,27 @@ const MenuItems = () => {
         available: formData.available,
       };
 
-      console.log('Saving item:', itemData);
+      console.log('📤 Sending item data:', itemData);
 
       if (editingItem) {
         // Update existing item
+        console.log('🔄 Updating item:', editingItem._id);
         const response = await updateMenuItem(editingItem._id, itemData);
-        console.log('Update response:', response);
+        console.log('✅ Update response:', response);
         toast.success('Menu item updated successfully!');
       } else {
         // Add new item
+        console.log('➕ Adding new item');
         const response = await addMenuItem(itemData);
-        console.log('Add response:', response);
+        console.log('✅ Add response:', response);
         toast.success('Menu item added successfully!');
       }
 
       setDialogOpen(false);
       await fetchMenuItems(); // Refresh the list
     } catch (error) {
-      console.error('Save error:', error);
-      console.error('Error response:', error.response);
+      console.error('❌ Save error:', error);
+      console.error('❌ Error response:', error.response);
       toast.error(error.response?.data?.message || error.message || 'Failed to save menu item');
     } finally {
       setSaveLoading(false);
@@ -226,13 +230,23 @@ const MenuItems = () => {
               <CardContent className="space-y-4">
                 <p className="text-2xl font-bold text-primary">₹{item.price}</p>
 
-                <div className="flex items-center justify-between">
-                  <Label htmlFor={`available-${item._id}`}>Available</Label>
-                  <Switch
-                    id={`available-${item._id}`}
-                    checked={item.available}
-                    onCheckedChange={() => toggleAvailability(item)}
-                  />
+                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border-2" style={{ borderColor: item.available ? '#22c55e' : '#d1d5db' }}>
+                  <div className="flex flex-col">
+                    <Label htmlFor={`available-${item._id}`} className="font-semibold cursor-pointer" style={{ color: item.available ? '#22c55e' : '#6b7280' }}>
+                      {item.available ? '✓ Available' : '✕ Unavailable'}
+                    </Label>
+                    <span className="text-xs text-muted-foreground">
+                      {item.available ? 'Customers can order this item' : 'Hidden from customers'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {item.available && <span className="h-3 w-3 rounded-full bg-green-500 animate-pulse"></span>}
+                    <Switch
+                      id={`available-${item._id}`}
+                      checked={item.available}
+                      onCheckedChange={() => toggleAvailability(item)}
+                    />
+                  </div>
                 </div>
 
                 <div className="flex space-x-2">
@@ -259,109 +273,124 @@ const MenuItems = () => {
         )}
       </div>
 
-      {/* Add/Edit Item Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {editingItem ? 'Edit Menu Item' : 'Add New Menu Item'}
-            </DialogTitle>
-            <DialogDescription>
-              Fill in the details for your menu item
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Item Name</Label>
-              <Input
-                id="name"
-                placeholder="e.g., Margherita Pizza"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              />
+      {/* Add/Edit Item Modal - Custom Implementation */}
+      {dialogOpen && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setDialogOpen(false);
+          }}
+        >
+          <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="p-6 border-b bg-gradient-to-r from-orange-500 to-red-500">
+              <h2 className="text-2xl font-bold text-white">
+                {editingItem ? 'Edit Menu Item' : 'Add New Menu Item'}
+              </h2>
+              <p className="text-white/90 mt-1">Fill in the details for your menu item</p>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                placeholder="Describe your dish"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
+            {/* Form */}
+            <div className="p-6 space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="price">Price (₹)</Label>
+                <Label htmlFor="name" className="text-gray-700 font-semibold">Item Name *</Label>
                 <Input
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  placeholder="199"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  id="name"
+                  placeholder="e.g., Margherita Pizza"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="border-2"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
-                <Select 
-                  value={formData.category} 
-                  onValueChange={(value) => setFormData({ ...formData, category: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="description" className="text-gray-700 font-semibold">Description *</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Describe your dish"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="border-2"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="price" className="text-gray-700 font-semibold">Price (₹) *</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    step="0.01"
+                    placeholder="199"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    className="border-2"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="category" className="text-gray-700 font-semibold">Category *</Label>
+                  <Input
+                    id="category"
+                    placeholder="e.g., Pizza, Burgers, Indian, Chinese, etc."
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="border-2"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="image" className="text-gray-700 font-semibold">Image URL</Label>
+                <Input
+                  id="image"
+                  type="url"
+                  placeholder="https://example.com/image.jpg"
+                  value={formData.image}
+                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                  className="border-2"
+                />
+                <p className="text-xs text-gray-500">Enter a direct URL to your food image</p>
+              </div>
+
+              <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
+                <Switch
+                  id="available"
+                  checked={formData.available}
+                  onCheckedChange={(checked) => setFormData({ ...formData, available: checked })}
+                />
+                <Label htmlFor="available" className="text-gray-700">Available for order</Label>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="image">Image URL</Label>
-              <Input
-                id="image"
-                type="url"
-                placeholder="https://example.com/image.jpg"
-                value={formData.image}
-                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-              />
-              <p className="text-xs text-muted-foreground">Enter a direct URL to your food image</p>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="available"
-                checked={formData.available}
-                onCheckedChange={(checked) => setFormData({ ...formData, available: checked })}
-              />
-              <Label htmlFor="available">Available for order</Label>
+            {/* Footer */}
+            <div className="p-6 border-t bg-gray-50 flex justify-end space-x-3">
+              <Button 
+                variant="outline" 
+                onClick={() => setDialogOpen(false)} 
+                disabled={saveLoading}
+                className="px-6"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSave} 
+                disabled={saveLoading}
+                className="px-6 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+              >
+                {saveLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>{editingItem ? 'Update' : 'Add'} Item</>
+                )}
+              </Button>
             </div>
           </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saveLoading}>
-              Cancel
-            </Button>
-            <Button onClick={handleSave} disabled={saveLoading}>
-              {saveLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>{editingItem ? 'Update' : 'Add'} Item</>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
     </div>
   );
 };

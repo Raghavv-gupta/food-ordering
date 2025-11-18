@@ -31,8 +31,8 @@ const VendorSignUp = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.shopName || !formData.email || !formData.password) {
-      toast.error("Please fill in required fields (Name, Shop Name, Email, Password)");
+    if (!formData.name || !formData.shopName || !formData.email || !formData.password || !formData.phone || !formData.address) {
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -120,11 +120,12 @@ const VendorSignUp = () => {
             <Phone className="absolute left-3 top-3 text-white/70 h-5 w-5" />
             <input
               type="text"
-              placeholder="Phone Number (optional)"
+              placeholder="Phone Number"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               className="w-full bg-white/20 text-white placeholder-white/70 py-3 pl-11 pr-3 rounded-xl border border-white/30 focus:ring-2 focus:ring-orange-300 outline-none"
               disabled={loading}
+              required
             />
           </div>
 
@@ -133,11 +134,12 @@ const VendorSignUp = () => {
             <Home className="absolute left-3 top-3 text-white/70 h-5 w-5" />
             <input
               type="text"
-              placeholder="Business Address (optional)"
+              placeholder="Business Address"
               value={formData.address}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               className="w-full bg-white/20 text-white placeholder-white/70 py-3 pl-11 pr-3 rounded-xl border border-white/30 focus:ring-2 focus:ring-orange-300 outline-none"
               disabled={loading}
+              required
             />
           </div>
 

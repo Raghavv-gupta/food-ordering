@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Outlet, Link } from 'react-router-dom';
 import SidebarVendor from '@/components/Vendor/SidebarVendor';
 import { Button } from '@/components/ui/button';
-import { Menu, Bell, User } from 'lucide-react';
+import { Menu, User } from 'lucide-react';
 
 const VendorDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -30,7 +30,7 @@ const VendorDashboard = () => {
               >
                 <Menu className="h-6 w-6" />
               </Button>
-              <Link to="/" className="flex items-center space-x-2">
+              <Link to="/vendor/dashboard" className="flex items-center space-x-2">
                 <span className="text-2xl">🍔</span>
                 <span className="text-xl font-display font-bold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent hidden sm:inline">
                   FoodHub Vendor
@@ -38,16 +38,9 @@ const VendorDashboard = () => {
               </Link>
             </div>
 
-            {/* Right: Notifications and Profile */}
+            {/* Right: Profile */}
             <div className="flex items-center space-x-2">
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold">
-                  3
-                </span>
-              </Button>
-
-              <Link to="/vendor/dashboard">
+              <Link to="/vendor/restaurant">
                 <Button variant="ghost" size="icon">
                   <User className="h-5 w-5" />
                 </Button>

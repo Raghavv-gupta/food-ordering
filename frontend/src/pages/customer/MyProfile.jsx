@@ -1,22 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { User, Mail, Phone, MapPin, Calendar, Camera } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
+import { getCustomerProfile, updateCustomerProfile } from '@/services/api';
 
 const MyProfile = () => {
-  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState({
-    name: 'John Doe',
-    email: 'john@example.com',
-    phone: '+91 98765 43210',
-    dateOfBirth: '1990-01-15',
-    address: '123 Main Street, Mumbai, Maharashtra 400001',
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
   });
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      const response = await getCustomerProfile();
+      setProfile({
+        name: response.customer.name || '',
+        email: response.customer.email || '',
+        phone: response.customer.phone || '',
+        address: response.customer.address || '',
+      });
+    } catch (error) {
+      console.error('Profile fetch error:', error);
+      toast.error(error.response?.data?.message || 'Failed to load profile');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleChange = (e) => {
     setProfile({
@@ -25,14 +48,41 @@ const MyProfile = () => {
     });
   };
 
-  const handleSave = () => {
-    // TODO: Add API call to update profile
-    console.log('Saving profile:', profile);
-    toast({
-      title: 'Profile Updated',
-      description: 'Your profile has been updated successfully.',
-    });
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      const response = await updateCustomerProfile({
+        name: profile.name,
+        phone: profile.phone,
+        address: profile.address,
+      });
+      
+      // Update localStorage
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        user.name = response.customer.name;
+        user.phone = response.customer.phone;
+        user.address = response.customer.address;
+        localStorage.setItem('user', JSON.stringify(user));
+      }
+      
+      toast.success('Profile updated successfully');
+    } catch (error) {
+      console.error('Profile update error:', error);
+      toast.error(error.response?.data?.message || 'Failed to update profile');
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -50,20 +100,15 @@ const MyProfile = () => {
           <div className="space-y-6">
             {/* Avatar Section */}
             <div className="flex items-center space-x-4">
-              <Avatar className="h-24 w-24">
+              <Avatar className="h-20 w-20">
                 <AvatarImage src="" />
                 <AvatarFallback className="text-2xl bg-gradient-to-br from-primary to-secondary text-white">
-                  {profile.name.charAt(0)}
+                  {profile.name ? profile.name.charAt(0).toUpperCase() : 'C'}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <Button variant="outline" size="sm">
-                  <Camera className="h-4 w-4 mr-2" />
-                  Change Photo
-                </Button>
-                <p className="text-xs text-muted-foreground mt-2">
-                  JPG, PNG or GIF. Max size 2MB
-                </p>
+                <p className="font-semibold text-lg">{profile.name}</p>
+                <p className="text-sm text-muted-foreground">{profile.email}</p>
               </div>
             </div>
 
@@ -93,9 +138,11 @@ const MyProfile = () => {
                   name="email"
                   type="email"
                   value={profile.email}
-                  onChange={handleChange}
+                  disabled
+                  className="bg-muted"
                   placeholder="Enter your email"
                 />
+                <p className="text-xs text-muted-foreground">Email cannot be changed</p>
               </div>
 
               <div className="space-y-2">
@@ -109,20 +156,6 @@ const MyProfile = () => {
                   value={profile.phone}
                   onChange={handleChange}
                   placeholder="Enter your phone number"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="dateOfBirth">
-                  <Calendar className="inline h-4 w-4 mr-2" />
-                  Date of Birth
-                </Label>
-                <Input
-                  id="dateOfBirth"
-                  name="dateOfBirth"
-                  type="date"
-                  value={profile.dateOfBirth}
-                  onChange={handleChange}
                 />
               </div>
 
@@ -144,11 +177,18 @@ const MyProfile = () => {
 
             {/* Action Buttons */}
             <div className="flex justify-end space-x-2 pt-4">
-              <Button variant="outline" type="button">
+              <Button variant="outline" type="button" onClick={fetchProfile}>
                 Cancel
               </Button>
-              <Button onClick={handleSave}>
-                Save Changes
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Changes'
+                )}
               </Button>
             </div>
           </div>

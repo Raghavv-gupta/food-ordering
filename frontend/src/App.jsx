@@ -18,6 +18,7 @@ import CustomerSignUp from "./pages/auth/CustomerSignUp";
 import VendorLogin from "./pages/auth/VendorLogin";
 import VendorSignUp from "./pages/auth/VendorSignUp";
 import AllVendors from "./pages/customer/AllVendors";
+import VendorMenu from "./pages/customer/VendorMenu";
 import CustomerDashboard from "./pages/customer/CustomerDashboard";
 import MyProfile from "./pages/customer/MyProfile";
 import ManageAddresses from "./pages/customer/ManageAddresses";
@@ -32,6 +33,7 @@ import VendorDashboard from "./pages/vendor/VendorDashboard";
 import Dashboard from "./pages/vendor/Dashboard";
 import VendorOrders from "./pages/vendor/VendorOrders";
 import MenuItems from "./pages/vendor/MenuItems";
+import RestaurantProfile from "./pages/vendor/RestaurantProfile";
 
 const queryClient = new QueryClient();
 
@@ -63,6 +65,7 @@ const App = () => {
               <Route path="/customer" element={<CustomerDashboard />}>
                 <Route index element={<AllVendors />} />
                 <Route path="vendors" element={<AllVendors />} />
+                <Route path="vendor/:vendorId" element={<VendorMenu />} />
                 <Route path="profile" element={<MyProfile />} />
                 <Route path="addresses" element={<ManageAddresses />} />
                 <Route path="orders" element={<MyOrders />} />
@@ -81,7 +84,7 @@ const App = () => {
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="orders" element={<VendorOrders />} />
                 <Route path="menu" element={<MenuItems />} />
-                <Route path="restaurant" element={<Dashboard />} />
+                <Route path="restaurant" element={<RestaurantProfile />} />
                 <Route path="earnings" element={<Dashboard />} />
                 <Route path="analytics" element={<Dashboard />} />
                 <Route path="settings" element={<Settings />} />

@@ -1,36 +1,51 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Minus, Plus, Trash2, ArrowLeft, ShoppingBag } from 'lucide-react';
+import { Minus, Plus, Trash2, ArrowLeft, ShoppingBag, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import { useCart } from '../contexts/CartContext';
 import { Button } from '../components/ui/button';
+import { placeOrder } from '../services/api';
 
 
 const CartPage = () => {
   const navigate = useNavigate();
   const { cart, updateQuantity, removeFromCart, getTotalPrice, clearCart } = useCart();
+  const [placing, setPlacing] = useState(false);
   const total = getTotalPrice();
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (cart.length === 0) {
       toast.error('Your cart is empty');
       return;
     }
     
-    // Prepare order data
-    const orderData = {
-      items: cart,
-      total: total,
-      itemCount: cart.length,
-      orderDate: new Date().toISOString(),
-    };
-    
-    // Clear cart and navigate to checkout success page
-    clearCart();
-    toast.success('Order placed successfully!');
-    navigate('/checkout-success', { state: { orderData } });
+    setPlacing(true);
+    try {
+      // Place order via backend API
+      const response = await placeOrder();
+      
+      // Navigate to checkout success page with order data
+      toast.success('Order placed successfully!');
+      navigate('/checkout-success', { 
+        state: { 
+          orderData: {
+            orderId: response.order._id,
+            items: response.order.items,
+            total: response.order.totalAmount,
+            subtotal: response.order.subtotal,
+            deliveryPrice: response.order.deliveryPrice,
+            orderDate: response.order.createdAt,
+          } 
+        } 
+      });
+    } catch (error) {
+      console.error('Error placing order:', error);
+      toast.error(error.response?.data?.message || 'Failed to place order. Please try again.');
+    } finally {
+      setPlacing(false);
+    }
   };
 
   return (
@@ -132,13 +147,22 @@ const CartPage = () => {
                       onClick={handleCheckout}
                       className="flex-1 btn-hero rounded-full"
                       size="lg"
+                      disabled={placing}
                     >
-                      Checkout
+                      {placing ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Placing Order...
+                        </>
+                      ) : (
+                        'Checkout'
+                      )}
                     </Button>
                     <Button
                       onClick={clearCart}
                       variant="outline"
                       size="lg"
+                      disabled={placing}
                       className="border-2 border-destructive text-destructive hover:bg-destructive hover:text-white transition-all duration-300 font-semibold shadow-sm hover:shadow-md rounded-full px-8"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
