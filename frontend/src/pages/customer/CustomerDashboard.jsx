@@ -43,7 +43,7 @@ const CustomerDashboard = () => {
 
             {/* Right: Cart and Profile */}
             <div className="flex items-center space-x-2">
-              <Link to="/menu/cart">
+              <Link to="/customer/cart">
                 <Button variant="ghost" size="icon" className="relative">
                   <ShoppingCart className="h-5 w-5" />
                   {totalItems > 0 && (

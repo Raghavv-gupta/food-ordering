@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   User, 
@@ -20,25 +20,26 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 const SidebarCustomer = ({ isOpen, onClose }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
-  // Get customer info from localStorage or context
-  const customerName = localStorage.getItem('customerName') || 'Guest User';
-  const customerEmail = localStorage.getItem('customerEmail') || 'guest@example.com';
+  // Get customer info from localStorage
+  const getCustomerData = () => {
+    try {
+      const userStr = localStorage.getItem('user');
+      return userStr ? JSON.parse(userStr) : null;
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+      return null;
+    }
+  };
+
+  const customer = getCustomerData();
+  const customerName = customer?.name || 'Guest User';
+  const customerEmail = customer?.email || 'guest@example.com';
 
   const menuItems = [
     {
@@ -63,13 +64,6 @@ const SidebarCustomer = ({ isOpen, onClose }) => {
           path: '/customer/profile',
           description: 'View and edit your profile',
         },
-        {
-          id: 'addresses',
-          label: 'Manage Addresses',
-          icon: MapPin,
-          path: '/customer/addresses',
-          description: 'Update delivery addresses',
-        },
       ]
     },
     {
@@ -81,39 +75,57 @@ const SidebarCustomer = ({ isOpen, onClose }) => {
           icon: ShoppingBag,
           path: '/customer/orders',
           description: 'Track your orders',
-          badge: '3', // This could be dynamic based on active orders
-        },
-        {
-          id: 'favorites',
-          label: 'Favorites',
-          icon: Heart,
-          path: '/customer/favorites',
-          description: 'Your favorite items',
-        },
-      ]
-    },
-    {
-      section: 'Other',
-      items: [
-        {
-          id: 'reviews',
-          label: 'My Reviews',
-          icon: Star,
-          path: '/customer/reviews',
-          description: 'Your restaurant reviews',
         },
       ]
     }
   ];
 
-  const handleLogout = () => {
-    // Clear localStorage or perform logout logic
-    localStorage.removeItem('customerToken');
-    localStorage.removeItem('customerName');
-    localStorage.removeItem('customerEmail');
-    navigate('/');
-    if (onClose) onClose();
+  const preventBack = () => {
+    window.history.pushState(null, '', '/');
   };
+
+  const handleLogout = () => {
+    console.log('Logout button clicked');
+    setShowLogoutDialog(true);
+  };
+
+  const confirmLogout = () => {
+    console.log('Confirming logout...');
+    
+    // Close the dialog first
+    setShowLogoutDialog(false);
+    
+    // Clear all authentication data
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('userRole');
+    
+    // Clear session storage as well
+    sessionStorage.clear();
+    
+    console.log('Auth data cleared');
+    
+    // Close any open modals
+    if (onClose) onClose();
+    
+    // Navigate to landing page and replace history to prevent back navigation
+    navigate('/', { replace: true });
+    
+    // Additional cleanup - clear browser history stack
+    window.history.pushState(null, '', '/');
+    
+    // Prevent back navigation
+    window.addEventListener('popstate', preventBack);
+    
+    console.log('Logged out successfully');
+  };
+
+  // Cleanup event listener on unmount
+  useEffect(() => {
+    return () => {
+      window.removeEventListener('popstate', preventBack);
+    };
+  }, []);
 
   const isActive = (path) => location.pathname === path;
 
@@ -225,7 +237,7 @@ const SidebarCustomer = ({ isOpen, onClose }) => {
           <Button
             variant="destructive"
             className="w-full justify-start"
-            onClick={() => setShowLogoutDialog(true)}
+            onClick={handleLogout}
           >
             <LogOut className="h-5 w-5 mr-2" />
             Logout
@@ -233,23 +245,39 @@ const SidebarCustomer = ({ isOpen, onClose }) => {
         </div>
       </aside>
 
-      {/* Logout Confirmation Dialog */}
-      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
-            <AlertDialogDescription>
+      {/* Logout Confirmation Modal */}
+      {showLogoutDialog && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/50" 
+            onClick={() => setShowLogoutDialog(false)}
+          />
+          
+          {/* Modal Content */}
+          <div className="relative z-[10000] bg-white dark:bg-gray-900 rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+            <h2 className="text-xl font-bold mb-2">Are you sure you want to logout?</h2>
+            <p className="text-muted-foreground mb-6">
               You will need to login again to access your account.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleLogout}>
-              Logout
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </p>
+            
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowLogoutDialog(false)}
+                className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmLogout}
+                className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors"
+              >
+                Yes, Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

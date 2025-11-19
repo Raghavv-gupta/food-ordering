@@ -117,11 +117,6 @@ const MyOrders = () => {
               <Eye className="h-4 w-4 mr-1" />
               View Details
             </Button>
-            {order.orderStatus === 'Delivered' && (
-              <Button variant="outline" size="sm">
-                Reorder
-              </Button>
-            )}
           </div>
         </CardContent>
       </Card>

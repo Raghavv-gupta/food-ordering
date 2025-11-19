@@ -1,14 +1,8 @@
-import { Link, useLocation } from 'react-router-dom';
-import { ShoppingCart, User } from 'lucide-react';
-import { useCart } from '@/contexts/CartContext';
+import { Link } from 'react-router-dom';
+import { User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Navbar = () => {
-  const location = useLocation();
-  const { getTotalItems } = useCart();
-  const totalItems = getTotalItems();
-  const isMainPage = location.pathname.includes('/menu');
-
   return (
     <nav className="sticky top-0 z-50 bg-card shadow-md border-b border-border">
       <div className="container mx-auto px-4 py-4">
@@ -21,20 +15,7 @@ const Navbar = () => {
           </Link>
 
           <div className="flex items-center space-x-4">
-            {isMainPage && (
-              <Link to="/menu/cart">
-                <Button variant="outline" size="icon" className="relative">
-                  <ShoppingCart className="h-5 w-5" />
-                  {totalItems > 0 && (
-                    <span className="cart-badge animate-bounce-in">
-                      {totalItems}
-                    </span>
-                  )}
-                </Button>
-              </Link>
-            )}
-
-            <Link to="/login">
+            <Link to="/auth/role">
               <Button variant="outline" size="icon">
                 <User className="h-5 w-5" />
               </Button>

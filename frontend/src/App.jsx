@@ -4,12 +4,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from "@/contexts/CartContext";
+import { AuthRoute, PrivateRoute } from "@/components/ProtectedRoute";
 import FrontPage from "./pages/FrontPage";
+import GuestBrowse from "./pages/GuestBrowse";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import CategoryPage from "./pages/CategoryPage";
-import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
+import CartPage from "./pages/CartPage";
 import NotFound from "./pages/NotFound";
 import AuthSelectRole from "./pages/AuthSelectRole";
 import AuthChooseAction from "./pages/AuthChooseAction";
@@ -50,22 +52,31 @@ const App = () => {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/menu/:category" element={<CategoryPage />} />
-              <Route path="/menu/cart" element={<CartPage />} />
               <Route path="/checkout-success" element={<CheckoutPage />} />
               <Route path="*" element={<NotFound />} />
 
-              <Route path="/auth/role" element={<AuthSelectRole />} />
-              <Route path="/auth/:role" element={<AuthChooseAction />} />
-              <Route path="/login/customer" element={<CustomerLogin />} />
-              <Route path="/signup/customer" element={<CustomerSignUp />} />
-              <Route path="/login/vendor" element={<VendorLogin />} />
-              <Route path="/signup/vendor" element={<VendorSignUp />} />
-
-              {/* Customer Dashboard Routes */}
-              <Route path="/customer" element={<CustomerDashboard />}>
+              {/* Guest Browsing Routes - No authentication required */}
+              <Route path="/browse" element={<GuestBrowse />}>
                 <Route index element={<AllVendors />} />
                 <Route path="vendors" element={<AllVendors />} />
                 <Route path="vendor/:vendorId" element={<VendorMenu />} />
+                <Route path="cart" element={<CartPage />} />
+              </Route>
+
+              {/* Auth Routes - Prevent logged-in users from accessing */}
+              <Route path="/auth/role" element={<AuthRoute><AuthSelectRole /></AuthRoute>} />
+              <Route path="/auth/:role" element={<AuthRoute><AuthChooseAction /></AuthRoute>} />
+              <Route path="/login/customer" element={<AuthRoute><CustomerLogin /></AuthRoute>} />
+              <Route path="/signup/customer" element={<AuthRoute><CustomerSignUp /></AuthRoute>} />
+              <Route path="/login/vendor" element={<AuthRoute><VendorLogin /></AuthRoute>} />
+              <Route path="/signup/vendor" element={<AuthRoute><VendorSignUp /></AuthRoute>} />
+
+              {/* Customer Dashboard Routes - Protected */}
+              <Route path="/customer" element={<PrivateRoute requiredRole="customer"><CustomerDashboard /></PrivateRoute>}>
+                <Route index element={<AllVendors />} />
+                <Route path="vendors" element={<AllVendors />} />
+                <Route path="vendor/:vendorId" element={<VendorMenu />} />
+                <Route path="cart" element={<CartPage />} />
                 <Route path="profile" element={<MyProfile />} />
                 <Route path="addresses" element={<ManageAddresses />} />
                 <Route path="orders" element={<MyOrders />} />
@@ -78,8 +89,8 @@ const App = () => {
                 <Route path="help" element={<HelpSupport />} />
               </Route>
 
-              {/* Vendor Dashboard Routes */}
-              <Route path="/vendor" element={<VendorDashboard />}>
+              {/* Vendor Dashboard Routes - Protected */}
+              <Route path="/vendor" element={<PrivateRoute requiredRole="vendor"><VendorDashboard /></PrivateRoute>}>
                 <Route index element={<Dashboard />} />
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="orders" element={<VendorOrders />} />

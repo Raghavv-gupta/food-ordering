@@ -208,7 +208,7 @@ export const placeOrder = async () => {
 };
 
 export const getCustomerOrders = async () => {
-  const response = await api.get('/order');
+  const response = await api.get('/order/my-orders');
   return response.data;
 };
 

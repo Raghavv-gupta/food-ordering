@@ -5,7 +5,8 @@ import {
   addItemToCart, 
   removeItemFromCart, 
   updateCartItemQuantity, 
-  clearCart as clearCartAPI 
+  clearCart as clearCartAPI,
+  getVendorById
 } from '@/services/api';
 
 const CartContext = createContext();
@@ -14,6 +15,7 @@ export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
   const [likes, setLikes] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [cartSummary, setCartSummary] = useState({ subtotal: 0, deliveryPrice: 0 });
 
   // Fetch cart from backend on mount
   useEffect(() => {
@@ -40,12 +42,33 @@ export const CartProvider = ({ children }) => {
         image: item.item.image,
         category: item.item.category,
         available: item.item.available,
+        vendor: item.item.vendor,
       }));
       setCart(transformedCart);
+      
+      // Store summary with subtotal
+      setCartSummary({
+        subtotal: data.summary?.subtotal || 0,
+        deliveryPrice: 0, // Will be fetched from vendor
+      });
+      
+      // Fetch vendor delivery price if cart has items
+      if (transformedCart.length > 0 && transformedCart[0].vendor) {
+        try {
+          const vendorData = await getVendorById(transformedCart[0].vendor);
+          setCartSummary(prev => ({
+            ...prev,
+            deliveryPrice: vendorData.vendor?.deliveryPrice || 0,
+          }));
+        } catch (error) {
+          console.error('Error fetching vendor delivery price:', error);
+        }
+      }
     } catch (error) {
       console.error('Error fetching cart:', error);
       // If not logged in or error, use empty cart
       setCart([]);
+      setCartSummary({ subtotal: 0, deliveryPrice: 0 });
     } finally {
       setLoading(false);
     }
@@ -124,7 +147,15 @@ export const CartProvider = ({ children }) => {
   };
 
   const getTotalPrice = () => {
-    return cart.reduce((total, item) => total + item.price * item.quantity, 0);
+    return cartSummary.subtotal + cartSummary.deliveryPrice;
+  };
+  
+  const getSubtotal = () => {
+    return cartSummary.subtotal;
+  };
+  
+  const getDeliveryPrice = () => {
+    return cartSummary.deliveryPrice;
   };
 
   const getTotalItems = () => {
@@ -152,6 +183,8 @@ export const CartProvider = ({ children }) => {
         clearCart,
         fetchCart,
         getTotalPrice,
+        getSubtotal,
+        getDeliveryPrice,
         getTotalItems,
         likes,
         toggleLike,

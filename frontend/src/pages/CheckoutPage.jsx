@@ -13,6 +13,8 @@ const CheckoutPage = () => {
   useEffect(() => {
     // Get order data from navigation state
     if (location.state?.orderData) {
+      console.log('Order data received:', location.state.orderData);
+      console.log('Order items:', location.state.orderData.items);
       setOrderData(location.state.orderData);
     } else {
       // If no order data, redirect to home
@@ -88,22 +90,12 @@ const CheckoutPage = () => {
               className="space-y-4"
             >
               <div className="flex items-center space-x-4 p-4 bg-muted/50 rounded-lg">
-                <div className="bg-blue-100 p-3 rounded-full">
-                  <Clock className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Estimated Delivery</p>
-                  <p className="font-semibold text-lg">{estimatedTime}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-4 p-4 bg-muted/50 rounded-lg">
                 <div className="bg-purple-100 p-3 rounded-full">
                   <Package className="h-5 w-5 text-purple-600" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total Items</p>
-                  <p className="font-semibold text-lg">{orderData.itemCount} items</p>
+                  <p className="font-semibold text-lg">{orderData.itemCount || 0}</p>
                 </div>
               </div>
 
@@ -123,7 +115,7 @@ const CheckoutPage = () => {
                 </div>
                 <div className="flex-1">
                   <p className="text-sm text-muted-foreground">Delivery Address</p>
-                  <p className="font-semibold">123 Main Street, New York, NY 10001</p>
+                  <p className="font-semibold">{orderData.deliveryAddress || 'N/A'}</p>
                 </div>
               </div>
             </motion.div>
@@ -141,12 +133,15 @@ const CheckoutPage = () => {
                   <div key={index} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
                     <div className="flex items-center space-x-3">
                       <img
-                        src={item.image}
-                        alt={item.name}
-                        className="w-12 h-12 object-cover rounded-lg"
+                        src={item.image || 'https://via.placeholder.com/50?text=Food'}
+                        alt={item.itemName || item.name}
+                        className="w-12 h-12 object-cover rounded-lg bg-muted"
+                        onError={(e) => {
+                          e.target.src = 'https://via.placeholder.com/50?text=Food';
+                        }}
                       />
                       <div>
-                        <p className="font-medium">{item.name}</p>
+                        <p className="font-medium">{item.itemName || item.name}</p>
                         <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
                       </div>
                     </div>
@@ -190,7 +185,7 @@ const CheckoutPage = () => {
               className="text-center pt-4 border-t"
             >
               <p className="text-muted-foreground">
-                Thank you for your order! We'll send you a notification when your food is on the way.
+                Thank you for your order!
               </p>
             </motion.div>
           </CardContent>

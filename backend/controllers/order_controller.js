@@ -38,11 +38,20 @@ export const placeOrder = async (req, res) => {
       const item = cartItem.item;
       subtotal += item.price * cartItem.quantity;
 
+      console.log('Cart item:', {
+        id: item._id,
+        name: item.itemName,
+        image: item.image,
+        price: item.price,
+        quantity: cartItem.quantity
+      });
+
       return {
         menuItem: item._id,
         itemName: item.itemName,
         price: item.price,
         quantity: cartItem.quantity,
+        image: item.image || '',
       };
     });
 
@@ -66,6 +75,8 @@ export const placeOrder = async (req, res) => {
       paymentMethod: "COD",
       orderStatus: "Pending",
     });
+
+    console.log('Order created with items:', JSON.stringify(newOrder.items, null, 2));
 
     // Clear cart
     cart.items = [];

@@ -1,11 +1,27 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { ArrowRight, ShoppingBag, Clock, Star } from "lucide-react";
 import heroImage from "../assets/hero-food.jpg";
 import { UserPlus } from "lucide-react";
 
 const FrontPage = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if user is already logged in
+    const token = localStorage.getItem('token');
+    const userRole = localStorage.getItem('userRole');
+
+    if (token && userRole) {
+      // Redirect logged-in users to their dashboard
+      if (userRole === 'vendor') {
+        navigate('/vendor/dashboard', { replace: true });
+      } else if (userRole === 'customer') {
+        navigate('/customer/vendors', { replace: true });
+      }
+    }
+  }, [navigate]);
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -34,7 +50,7 @@ const FrontPage = () => {
             </p>
 
             <div className="flex flex-wrap gap-4 mb-12">
-              <Link to="/customer/vendors">
+              <Link to="/browse/vendors">
                 <Button size="lg" className="btn-hero group">
                   Start Ordering
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
