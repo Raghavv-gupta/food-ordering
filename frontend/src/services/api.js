@@ -29,11 +29,16 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token expired or invalid
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      localStorage.removeItem('userRole');
-      window.location.href = '/';
+      // Only auto-clear auth and redirect when a token was present
+      // This prevents login/signup attempts (which return 401) from
+      // causing an immediate redirect; those should be handled by callers.
+      const existingToken = localStorage.getItem('token');
+      if (existingToken) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('userRole');
+        window.location.href = '/';
+      }
     }
     return Promise.reject(error);
   }
