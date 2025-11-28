@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+// Read API base URL from Vite env. Set `VITE_API_BASE_URL` in `.env` (frontend)
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 // Create axios instance
 const api = axios.create({
