@@ -1,4 +1,4 @@
-# Project Name
+# food ordering system
 
 A modern web application built with React, JavaScript, and Tailwind CSS. This project provides a scalable and maintainable structure for building interactive frontend applications with sleek UI components.
 
